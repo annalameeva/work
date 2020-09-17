@@ -1,0 +1,157 @@
+#Задание 1
+pd.Series(sorted(injury['Body_Part'])).plot.bar()
+pd.Series(sorted(injury['Body_Part'].sample(100))).plot.bar()
+import matplotlib.pyplot as plt
+%matplotlib inline #Далее импортируем нужную библиотеку
+import seaborn as sns
+sns.set(rc={'figure.figsize':(11.7,8.27)}) #Также импортируем библиотку
+injury = pd.read_excel('neiss2017_1000sample.xlsx') #Читаем еще раз файл
+sns.distplot(injury['Age'], bins=20)
+injury['Age'].mean() #Посчитаем среднее значение
+sns.distplot(injury['Age'], bins=100)
+sns.catplot(x='Other_Race', y='Product_1', data=injury, kind='bar')
+sns.violinplot(x='Body_Part', y = 'Other_Race', data = injury)
+sns.violinplot(x='Body_Part', y = 'Other_Race', data = injury, hue='Sex')
+sns.catplot(x = 'Sex', y = 'Age', data = injury, kind='box', hue='Other_Race')
+
+
+
+
+#Задание 2
+import requests
+from bs4 import BeautifulSoup
+
+def find_next(url): #Функция вытаскивания ссылок на следующие страницы, то есть не только с первой. Чтобы код был более универсальным
+    response = requests.get(url) #Берем нашу ссылку
+    response1 = response.text #Вытаскиваем из не текст
+    soup = BeautifulSoup(response1, 'html.parser') #Парсируем
+    page_list = soup.findAll('span', {'class' :'page_list'})
+    list_p = page_list[0].findAll('a') #Выбираем все ссылки
+    spisok = [] #Создаем список
+    for element in list_p:
+        if element.get('href'): #Вытаскиваем все ссылки, они в html начинаются на href
+            link = element.get('href')
+            link = ''.join(['https://www.imdb.com', link]) #Добавляем к нашей ссылке данный едостающий тескт
+            spisok.append(link) #клеим нашу ссылку к списку со ссылками на картинки
+    return(spisok)
+
+def get_pictures(url, n): #Функция скачивания ссылок
+    response = requests.get(url)
+    response1 = response.text
+    words = response1.split() #Делим наш текст на отдельные слова
+    spisok = []
+    for word in words:
+        if word.endswith('.jpg"') and word.startswith("src=") and "100" in word: #Иначе скачивается еще постер с самого вверха, который нам не нужен
+            spisok.append(word)
+    for i in spisok:
+        img = requests.get(i[5:len(i)-1]) #достаем нашу ссылку, начиная с 5го элемента, не включая кавычки и http перед ссылкрй, а также не включая последнюю кавычку (поэтому делаем (i)-1)
+        print("n = ", n) #Будем нумеровать наши картинки
+        with open(str(n) + '.jpg', 'wb') as file: #Переводим нашу строку из байтового формата и открываем наш файл
+            file.write(img.content)
+        n += 1
+            
+url = 'https://www.imdb.com/title/tt2527336/mediaindex?ref_=tt_pv_mi_sm'
+n = 1
+get_pictures(url, n)
+all_pictures = find_next(url)
+for i in all_pictures:
+    n += 48 #Скачиваем 48 изображений с первой страницы, и переходим на вторую стрицу и оотуда теперь скачиваем 48 картинок
+    get_pictures(i, n)
+    
+    
+    
+#Задание 3
+import pandas as pd
+# для начала загрузим данные
+from sklearn.datasets import load_boston
+
+boston = load_boston()
+print(boston.DESCR) # посмотрим описание загруженных данных
+boston_df = pd.DataFrame(boston.data, columns = boston.feature_names) 
+boston_df['MEDV'] = boston.target # целевая переменная
+boston_df.head() # посмотрим на первые наблюдения
+
+boston_df.shape # узнаем размерность датасета: 506 наблюдений и 14 переменных
+
+boston_df.dropna().shape # нет пропусков в данных
+
+boston_df.describe() # описательные статистики по всем переменным
+
+import matplotlib.pyplot as plt
+%matplotlib inline
+import seaborn as sns
+
+sns.distplot(boston_df['CRIM'], bins=20, axlabel= 'CRIM', label = "Гистограмма и плотность распределения CRIM")
+
+sns.distplot(boston_df['ZN'], bins=20, label = "Гистограмма и плотность распределения ZN")
+
+sns.distplot(boston_df['NOX'], bins=20, label = "Гистограмма и плотность распределения NOX")
+
+sns.regplot(x="LSTAT", y="MEDV", data=boston_df) # построим регрессию
+
+plt.boxplot(boston_df['CRIM']) # очень много экстремальных значений
+plt.title('Ящичковая диаграмма для переменной CRIME')
+plt.xlabel('CRIME')
+plt.show()
+
+plt.boxplot(boston_df['NOX']) # ни одного выброса
+plt.title('Ящичковая диаграмма для переменной NOX')
+plt.xlabel('NOX')
+plt.show()
+
+
+
+#Задание 4
+X = pd.DataFrame(boston.data, columns = boston.feature_names) # матрица Х
+y = pd.DataFrame(boston_df['MEDV'])  # boston.target - зависимая переменная
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0) # чтобы зафиксировать параметр случайности
+
+# посмотрим на размерность полученных выборок
+print(X_train.shape, y_train.shape)
+print(X_test.shape, y_test.shape)
+
+from sklearn.linear_model import LinearRegression
+
+linereg = LinearRegression()
+linereg.fit(X_train, y_train) # на обучающей выборке
+
+y_train_pred = linereg.predict(X_train)
+y_test_pred = linereg.predict(X_test) # на тестовой выборке
+
+from sklearn.metrics import mean_squared_error
+
+mean_squared_error(y_test, y_test_pred) # требуемая в задании среднеквадратичная ошибка
+
+from sklearn.metrics import r2_score
+
+print('R^2 train: {:.3f}, test: {:.3f}'.format(
+        r2_score(y_train, y_train_pred),
+        r2_score(y_test, y_test_pred)))
+        
+from sklearn.metrics import mean_absolute_error
+
+print('MAE train: {:.3f}, test: {:.3f}'.format(
+        mean_absolute_error(y_train, y_train_pred),
+        mean_absolute_error(y_test, y_test_pred)))
+        
+ from sklearn.metrics import median_absolute_error
+
+print('MedAE: {:.3f}, test: {:.3f}'.format(
+        median_absolute_error(y_train, y_train_pred),
+        median_absolute_error(y_test, y_test_pred)))
+        
+        
+ #Задание 5
+ y_mean = y_train.mean()[0] # посчитаем среднее значение по обучающей выборке
+print(y_mean)
+y_mean_pred = np.full(X_test.shape[0], y_mean)
+print('MSE test: {:.3f}'.format(mean_squared_error(y_test, y_mean_pred))) # MSE для константного решения
+
+print('R^2 test: {:.3f}'.format(r2_score(y_test, y_test_pred)))
+
+
+#Задание 6
+y_test_forest_pred = clf.predict(X_test)
+print('R^2 test: {:.3f}'.format(r2_score(y_test, y_test_forest_pred)))
+print('MSE test: {:.3f}'.format(mean_squared_error(y_test, y_test_forest_pred)))
