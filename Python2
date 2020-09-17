@@ -1,0 +1,174 @@
+#Задание 1
+import requests #Импортируем библиотеку request
+import re #Импортируем модель re
+spisok = [] #Создали список
+url = 'https://lenta.ru' #Наш url
+pattern = r'https:([^\s]*).jpg' #Создали шаблон для поиска формата jpg
+spisok = re.findall(pattern, requests.get(url).text) #Найдем все изображения на сайте
+n = 1 
+for i in spisok:
+    img = requests.get('https:' + i + '.jpg') #Работаем через цикл, который задаст нам нахождение всех строчек, которые начинаются на http и заканчиваются на jpg
+    print(img) #Печатаем изображения
+    with open(str(n) + '.jpg', "wb") as file: #Переводим нашу строку из байтового формата и открываем наш файл
+        for j in img.iter_content():
+            file.write(j)
+    n += 1 #Повторяем цикл для следующей строчки
+    print(*spisok) #Выводим список изображений на экран
+    
+    
+    
+    
+#Задание 2 
+from bs4 import BeautifulSoup #Работать будем с помощью beautiful soup
+import requests #Импортируем модуль request
+response = requests.get('https://ru.wikipedia.org/wiki/Всемирная_библиотека_(Норвежский_книжный_клуб') #Вводим нашу исходную ссылку
+soup = BeautifulSoup(response.text, 'html.parser')
+# print(soup.prettify()[:1000]) #Посмотрим на всякий случай первые 1000 символов из кода страницы. Все работает.
+for link in soup.find_all('a'): # Извлекаем все URL-адреса, найденные в тегах <a> страницы
+    if link.get('href'): #Извлекаем все внутренние ссылки
+        l = link.get('href') #Каждую ссылку ввели в переменную l
+        #print(l) #Просмотрели все внутренние ссылки, и увидели там слеудующее: существует 2 типа ссылок: первый - который ссылается на страницу этого же сайта. В этом слуаче домен будет совпадать с wikipedia. Также есть ссылки, которые ссылаются на саму себя (#mv например здесь) 
+        if '#' in l and '.org' not in l: #Нужно сделать все ссылки рабочими.
+            l = ''.join(["https://ru.wikipedia.org/wiki/Всемирная_библиотека_(Норвежский_книжный_клуб", l])
+        if '.org' not in l and '.com' not in l: #Для ссылок типа #mv нужно к изначальной ссылке из задания добавить тескт из этой ссылки (#mv)
+            l = ''.join(["https://ru.wikipedia.org", l]) #А есть ссылки, которые начинаются ,например, на /wiki/, и к ним нужно добавит  домен википедии
+        if '//' in l: #Здесь не хватает https просто
+            if "https" not in l:
+                l = ''.join(["https:", l])
+            print(l)
+        response1 = requests.get(l) #Далее проделываем всю ту же процедуру, но только уже для каждой переменной l, в который сидит отдельная внутреняя ссылка
+        soup = BeautifulSoup(response1.text, 'html.parser')
+        print(soup.title) # Печатаем титул сайта
+        print("lenght:", str(len(soup.get_text()))) #Печатаем текст сайта
+        
+        
+  
+  
+#Задание 3  
+  #На вход функции подается ссылка на статью википедии и число N. 
+#Требуется на заданной странице найти ссылку на первую по счету статью википедии и перейти по ней (вывести название на печать). 
+#Далее тоже самое проделать N раз, уже для новой заданной страницы.
+def function():
+    N = int(input())#Вводим число N
+    s = input()#Вводим сайт
+    from bs4 import BeautifulSoup
+    import requests
+    response = requests.get(s)
+    soup = BeautifulSoup(response.text, 'html.parser') #Ссчитали код заданного сайта
+    x = soup.findAll('div', {'id': 'mw-content-text'})#Находим тело страницы и класс для него и сохраняем в переменную
+    y = x[0].findAll('p')
+    for link in y[0].findAll('a'): #Находим все внутренние ссылки с сайта
+        if link.get('href'): #Извлекаем все внутренние ссылки
+            l = link.get('href') #Каждую ссылку ввели в переменную l
+            if '#' in l and '.org' not in l: #Нужно сделать все ссылки рабочими.
+                l = ''.join([s, l])
+            if '.org' not in l and '.com' not in l: #Для ссылок типа #mv нужно к изначальной ссылке из задания добавить тескт из этой ссылки (#mv)
+                l = ''.join(["https://ru.wikipedia.org", l]) #А есть ссылки, которые начинаются ,например, на /wiki/, и к ним нужно добавит  домен википедии
+            if '//' in l: #Здесь не хватает https просто
+                if "https" not in l:
+                    l = ''.join(["https:", l])
+            print(l)
+            response1 = requests.get(l)
+            soup = BeautifulSoup(response1.text, 'html.parser')
+            print(soup.title)
+for i in range(N):
+function()
+        
+
+
+#Задание 4
+import pandas as pd
+kovorking = pd.read_excel('kovorking.xlsx')
+kovorking.head()#Импортируем панду и смотрим голову таблицы для проверки. Все ок
+kovorking[kovorking['Tariffs'] == 'Бесплатно'] #Посмотрим, сколько "бесплатных" строк (для проверки)
+
+
+free = kovorking.Tariffs.str.contains('Бесплатно') #Вытаскиваем коворкинг со словом бесплатно
+free2 = kovorking.Tariffs.str.contains('-0.00') #Вытаскиваем 2 коворкинга с нулями
+kovorking['Free_kovorkings'] = free + free2 #Складываем их и записываем в одну переменную
+number = kovorking.Free_kovorkings.value_counts() #Считаем их количесвто с помощью стандартной функции
+share = kovorking.Free_kovorkings.value_counts(normalize = True) #Считаем долю с помощью стандартной функции
+print('Количество', number[1])
+print('Доля', share[1])
+
+
+#Задание 5
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup # Сначала импортируем все нужные функции
+
+def active_url(url): #Пишем функцию для определения активного и работающего url
+    if "https://" not in url:
+        if "www." not in url:
+            url = ''.join(["https://", url]) #Добавляем http
+            return(url)
+        else:
+            url = url.replace("www.", "https://") #Заменяем www на http
+            return(url)
+
+def our_title(url): #Также определяем функцию для нахождения титула
+    try:
+        response = requests.get(url) #Достаем наш url
+        if response.status_code == 200: #Если все хорошо (то есть равно числу 200)
+            html = response.text #Читаем наш html
+            soup = BeautifulSoup(html, 'html.parser') #Парсируем
+            title1 = soup.title.get_text()
+            return(title1) #Возвращаем наш титул
+        else:
+            title1 = 'No answer'
+            return(title1) #Если что-то пошло не так, то пишем что сайт не отвечает
+    except:
+        title1 = "No answer" 
+        return(title1)
+
+kovorking = pd.read_excel('kovorking.xlsx') #Снова прочитываем наш файл
+kovorking = kovorking.dropna(subset = ["Site"]) #чистим неопреденные значения для столбца site
+all_titles = [] #Создаем список с названиями всех титулов
+urls = [] #Создаем список со всеми urls
+for url in kovorking["Site"]:
+    url = active_url(url) #Делаем наши ссылки актиными с помощью функции написанной ранее
+    urls.append(url) #Приклеиваем url в конец списка
+    title = our_title(url) #Пользуемся нашей функцией, написанной ранее для нахождения титула
+    all_titles.append(title) #Приклеиваем титул в конец списка
+    
+kovorking.insert(16, "WebTitle", all_titles) #16-ым столбцом вставляем новую колонку со всеми названиями
+kovorking.head() #Выводим голову
+
+
+
+#Задание 6
+import re
+def Full_names(url, fullname): #Определим сначала функцию, где ищем все полные названия из первой колонки таблицы
+    try:
+        response = requests.get(url)
+        if response.status_code == 200: #Если все ок
+            html = response.text
+            result = re.findall(fullname, html) #Записываем в массив все индексы вхождения нужного элемента в строке, по которой делаем поиск
+            number = len(result) #Считаем длину
+            return(number) #И выводим наше количество
+        else:
+            number = "No answer" 
+            return(number)
+    except:
+        number = "No answer" #Если что-то пошло не так, то пишем, что сайт не отвечает
+        return(number)
+
+fullnames = kovorking["FullName"] #Для стоблца из первой колонки
+i = 0 #Начинаем с нулевого элемента
+coworking = [] #Создаем новый список
+for url in urls: #Для каждого сайта в нашем списке всех сайтов
+    if i == 145: #если номер сайта 145 (он пропущен)
+        i = i + 1 #Надо сделать 146, чтобы не было ошибки
+    fullname2 = fullnames[i] #берем название сайта по его номеру
+    w = Full_names(url, fullname2) #Отправляем в функцию, которая ищет это название на странице с кодом
+    coworking.append(w) #Добавляем количество нахождений в список
+    i = i + 1 #Переходим к следующему элементу
+    
+kovorking.insert(17, "Number", coworking) #Добавляем 17 столбец с количеством встреч полного имени
+kovorking
+
+
+
+
+
+ 
