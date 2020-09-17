@@ -1,24 +1,22 @@
 # Задание 1
-text = """Moscow is the capital and the largest city of Russia. The Kremlin is the heart of Moscow. 
-Moscow provides opportunities for cultural time spending. There are a lot of theatres (the Bolshoi Theatre, 
-the Maly Theatre, the Moscow Art Theatre, the Theatre in Taganka and many others), museums and art galleries 
-(the Pushkin Museum of Fine Arts, the Tretyakov Gallery) to satisfy every taste."""
-
-text1 = text.lower() # ШАГ 1 меняем на единый регистр, убирая заглавные буквы
-# ШАГ 2 заменяем знаки препинания на пробелы. Апостроф просто убираем, так как он находится внутри слова, а не между
-text2 = text1.replace('.',' ').replace(',',' ').replace('"',' ').replace("'",'').replace('!', ' ').replace('?', ' ')  
-text_full = text2.split()  # ШАГ 3 делим на отдельные слова
-
-counter = { } # создадим пустой словарь для дальнейшего подсчёта частот
-for word in text_full:
-    counter[word] = counter.get(word, 0) + 1 # get возвращает значение (частоту) ключа, если такого слова еще не было - вернет 0
-
-for words in counter.keys():  # ключи словаря
-    if counter[words] >= 3: # встречаются в тексте чаще, чем 3 раза
-        print("Слово", words.title(), "встречается", counter[words], "раз.") 
-        # Используем title, чтобы напечатать каждое слово (ключ) с заглавной буквы
-        
-#дополнение: print(counter) можно увидеть весь словарь; уникальные слова и как часто они встречаются в тексте
+#Идея заключается в том, чтобы сначала привести наш текст в анализируемый вид, то есть представить все слова отдельно (первая часть кода).
+#Далее, используя словари Питона, считаем повторяющиеся слова (2ая часть кода)
+#И далее выводим на экран все слова, которые повторяются 3 или более раз
+poem = """This little pig went to market,
+This little pig stayed at home,
+This little pig had roast beef,
+And this little pig had none"""
+poem1=poem.lower() #Делаем один регистр для стиха poem, и называем получившийся текст как poem1
+poem2=poem1.replace(',',' ') #Замещаем запятую на пробел и называем данное содержимое как poem2
+poem_final=poem2.split() #Делим наш poem2 на отдельные слова в столбик, каждое слово выводится к отдельных кавычках
+frequency = { } #используются Словари Питона. Нам нужно сочетание ключ-значение, где ключом является слово, а значение - это частота появления данного слова.Поэтому задаем через такую команду пустой словарь.
+for word in poem_final:
+    count = frequency.get(word,0) #Здесь word является ключом. Вместо default у нас используется 0, то есть начало отсчета того или иного слова в нашем тексте
+    frequency[word] = count + 1 #Здесь считается частота слова. Прибавляется единица, если встретилось то или иное слово. 1 - это текущее попадание. Даее все идет снова по кругу. Count после первого появления слова становится 1, и далее программа прибавляет еще +1, если слово встретилось второй раз итд.
+frequency_list = frequency.keys() #Так в Питоне используются ключи. То есть мы создали "лист с частотой" и сделали его ключом.
+for words in frequency_list: #Теперь из всех слов из созданного "листа с частотой" выбираем все слова, которые повторяются более (или равно) 3 раз.
+    if frequency[words]>=3:
+        print("Слово", words.title(), "повторяется", frequency[words], "раз") #Команда words.title выписывает само слово, а frequency[words] частоту повторения данного слова.
 
 
 
@@ -26,33 +24,41 @@ for words in counter.keys():  # ключи словаря
 
 
 # Задание 2
-def result(interest, diligence, talent): # определим функцию результата
-    result = 0.4 * interest + 0.4 * diligence + 0.2 * talent
-    if result >= 6:
-        return "Студент с курсом справился."
-    return "Студент с курсом не справился."
-
-interest = int(input())
-diligence = int(input())
-talent = int(input())
-print(result(interest, diligence, talent))
-
+# Сначала задаем характеристики, присущие нашему студенту. Далее задаем формулу оценивания по курсу. И далее используем цикл if else, чтобы выяснить справился ли студент с курсом.
+interest = float(input())
+diligence = float(input())
+talent = float(input()) #Сначала вводим данные, характеризующие ученика. Также предполагается, что могут быть и дробные числа (по шкале от 1 до 10)
+result=interest*0.4+diligence*0.4+talent*0.2 #Вводим формулу, определяющуюся программой курса
+if result >=6:
+    print('managed') #Предполагается, что результат равный 6 также говорит о том, что студент справился с курсом
+else:
+    print('not managed') #Результат меньший 6, говорит о том, что студент не справился с курсом
 
 
 
 
-# Задание 3, второй способ
-text = """Asia is the world's largest continent. A place with e734h112@! unique cultural heritage, Asia is home to more than 3.8 billion people, making it the crcrc567! most populous continent on Earth. Even today people around 1237dg39! Asia hold festivals celebrating the deeds of heroes and animals from ancient folklore.
-The collection of folktales from Asia consists of fourteen books !! with 353 stories: 55 Arabic folktales, 104 Chinese folktales, 69 Indian folktales, 69 Japanese folktales and 61 Filipino folktales."""
 
-def remover(text): # функция удаления ненужных слов, которые заканчиваются на !
-    lst = [] # новый пустой список (list)
-    for word in text.split():
-        if not word.endswith('!'): # проверяем заканчивается ли на !
-            lst.append(word) # добавляет элемент в конец списка
-    return ' '.join(lst) # объединяет в строку, сепаратор - пробел
-
-print(remover(text))
+# Задание 3
+#Работать будем через цикл if else, и на каждом условии проверять выполняются ли они. То есть проверяем является ли строка паролем, 
+#то есть смотрим имеет ли строка больше 6-ти символов, из чего состоит, есть ли заглавные буквы.Также в данном решении предполагается наличие и русских, и латинских букв.
+password=input()
+import re #Импортируем библиотеку re, чтобы можно было искать в строке необходимые нам данные
+if len(password) < 6:
+    print('Пароль должен содержать минимум 6 символов') #Работаем через цикл if else. Пароль должен быть 6 или более символов
+elif re.search('[0-9]',password) is None: 
+    print('Пароль должен содержать цифры') #Должны быть цифры
+elif re.search('[a-z]',password) is None: 
+    print('Пароль должен содержать латинские буквы') #Должны быть латинские буквы
+elif re.search('[а-я]',password) is None:
+    print('Пароль должен содержать русские буквы') #Должны быть русские буквы
+elif re.search('[A-Z]',password) is None: 
+    print('Пароль должен содержать заглавные латинские буквы') #Заглавные латинские буквы должны входить в пароль
+elif re.search('[А-Я]',password) is None: 
+    print('Пароль должен содержать заглавные русские буквы') #Заглавные русские буквы должны входить в пароль
+elif re.search('[!?$#@]',password) is None: 
+    print('Пароль должен содержать символы') #Должны быть символы
+else:
+    print('Пароль создан')
 
 
 
@@ -60,42 +66,25 @@ print(remover(text))
     
     
     
-# Задание 4, второй способ
-import re
-
-password = input()
-
-def goodpassword(password):
-    if len(password) < 6:
-        print("Не является надежным паролем. Пароль должен содержать не менее шести символов.")
-    elif re.search('[0-9]',password) is None:
-        print("Не является надежным паролем. Необходимо использовать цифры.")
-    elif re.search('[a-z]',password) is None: 
-        print("Не является надежным паролем. Необходимо использовать буквы.")
-    elif re.search('[A-Z]',password) is None: 
-        print("Не является надежным паролем. Необходимо использовать заглавные буквы.")
-    elif re.search('[$#@]',password) is None: 
-        print("Не является надежным паролем. Отсутствуют другие символы, например '?!@%$' и тд.")
-    else:
-        print("Это надёжный пароль.")
- 
-goodpassword(password)
-
+# Задание 4
+#Здесь также будем работать через цикл. Но сначала импортируем данные из текстового файла.
+with open('C:\\Users\\TTT\\Desktop\\Извлечение и анализ интернет данных\\passwords.txt') as f: #сначала с помощью функции pwd узнали наш путь. И импортировали данные.
+    text=f.read()
+import re #Импортируем библиотеку с функциями как в задании номер 4
+def password():
+    for password in text.splitlines(): #Функция, которая делает строчку как 1 элемент
+        if len(password) < 6:
+            continue
+        elif re.search('[0-9]',password) is None: #Работаем аналогично через цикл. Однако здесь уже не будеи использовать русские буквы, так как в текстовом файле их нет. Только латинские
+            continue #Продолжаем проверять следующие условия на соответствие пароля
+        elif re.search('[a-z]',password) is None: #Должны быть буквы
+            continue
+        elif re.search('[A-Z]',password) is None: #Должны быть заглавные буквы
+            continue
+        elif re.search('[!?$#@]',password) is None: #Должны быть символы
+            continue
+        print(password)
+password()
 
 
 
-# Задание 5
-text = open('passwords.txt') # считаем текст из файла
-text2 = text.read()
-text.close()
-
-password = text2.split() # Разделяем на слова
-
-def goodpassword(password):
-    if password.isalnum() == False and (len(password) >= 6) and not (password.islower() == True or password.isupper() == True): 
-        return True
-    return False
-
-for i in range(len(password)): # Учитываем кол-во паролей в файле
-     if goodpassword(password[i]) == True:
-        print(password[i])
